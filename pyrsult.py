@@ -18,6 +18,7 @@ class Result(ABC, Generic[T, E]):
     """抽象基类：统一 Success / Failure 的公共接口"""
 
     __slots__ = ("_value",)
+    __match_args__ = ("_value",)
 
     def __init__(self, value: Any) -> None:
         self._value: Any = value
@@ -75,7 +76,7 @@ class Success(Result[T, Any]):
         return self._value
 
     def __repr__(self) -> str:
-        return f"Ok({self._value!r})"
+        return f"Success({self._value!r})"
 
 
 class Failure(Result[Any, E]):
@@ -103,7 +104,7 @@ class Failure(Result[Any, E]):
         raise ValueError(msg)
 
     def __repr__(self) -> str:
-        return f"Err({self._value!r})"
+        return f"Failure({self._value!r})"
 
 
 # ------------------- 业务代码 -------------------
@@ -119,3 +120,10 @@ if __name__ == "__main__":
     err = foo(-5)
     print(err.unwrap_or(0))  # -> 0
     # err.expect("custom msg")  # => ValueError: custom msg
+
+    # match 语法
+    match r := foo(-1):
+        case Success(value):
+            print("Success|", value)
+        case Failure(error):
+            print("Failure|", error)
