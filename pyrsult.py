@@ -1,5 +1,9 @@
 """
 这是一个让你能够在python里面使用类似于Rust的Result类型的库
+
+by: fexcode| https://github.com/fexcode/
+at: 2025-10-18
+on: https://github.com/fexcode/pyrsult
 """
 
 from __future__ import annotations
