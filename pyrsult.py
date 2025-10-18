@@ -122,7 +122,7 @@ if __name__ == "__main__":
     # err.expect("custom msg")  # => ValueError: custom msg
 
     # match 语法
-    match r := foo(-1):
+    match foo(-1):
         case Success(value):
             print("Success|", value)
         case Failure(error):
