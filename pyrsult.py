@@ -1,22 +1,5 @@
 """
 这是一个让你能够在python里面使用类似于Rust的Result类型的库
-
-
-def foo(x: int) -> Result[int, str]:
-    if x > 0:
-        return Ok(x)
-    else:
-        return Err("x should be positive")
-
-if __name__ == '__main__':
-    result = foo(5)
-    if result.is_ok():
-        print(result.unwrap())
-    else:
-        print(result.unwrap_err())
-
-    result = foo(-5).expect("x should be positive")
-    print(result)
 """
 
 from __future__ import annotations
