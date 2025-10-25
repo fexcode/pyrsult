@@ -241,6 +241,9 @@ class Some(Option[T]):
 
     def __repr__(self) -> str:
         return f"Some({self._value!r})"
+    
+    def match_(self,some: Callable[[T], U], nothing: Callable[[], U]):
+        return some(self.NN)
 
 
 class Nothing(Option[Any]):
@@ -264,6 +267,9 @@ class Nothing(Option[Any]):
 
     # 为了类型检查器不报错，给 NN 显式绑定
     NN = iam_sure_this_value_is_not_nothing
+
+    def match_(self,some: Callable[[T], U], nothing: Callable[[], U]):
+        return nothing()
 
     def __repr__(self) -> str:
         return "Nothing"
