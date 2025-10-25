@@ -1,206 +1,109 @@
-# pyrsult: Rust 风格的 Result 类型在 Python 中的实现
-
-[![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-
-> PyRsult 是 Rust 风格的 Result 类型在 Python 中的实现。<br>
-> 注意: 是 PyRsult 而不是 PyResult 哦,Rs 是 Rust 的意思
-
-`pyrsult` 是一个超轻量级的 Python 库，提供了类似于 Rust 语言中的`Result<T, E>`类型。它允许你以更优雅的方式处理可能失败的操作，避免使用异常来控制程序流程，使代码更加健壮和可读。
-
-## 特性
-
-- 🦀 Rust 风格的 Result 类型实现
-- 🛡️ 类型安全的错误处理
-- 🧩 简洁的 API 设计
-- 📦 零依赖，纯 Python 实现
-- 🧩 支持泛型类型提示
-
-## 安装
-
-```bash
-pip install pyrsult
-```
-
-或者直接将`result.py`文件复制到你的项目中。
-
-## 快速开始
-
-```python
-from pyrsult import Result
-def divide(a: float, b: float) -> Result[float, str]:
-    return Result.Success(a / b) if b != 0 else Result.Failure("Division by zero")
-# 成功情况
-result = divide(10, 2)
-print(result)           # Ok(5.0)
-print(result.unwrap())  # 5.0
-# 失败情况
-result = divide(10, 0)
-print(result)               # Err('Division by zero')
-print(result.unwrap_or(-1))  # -1
-```
-
-## 核心概念
-
-pyrsult 提供了两种结果类型：
-
-- `Success(T)`: 表示操作成功，包含一个成功值
-- `Failure(E)`: 表示操作失败，包含一个错误值
-
-## API 文档
-
-### 工厂方法
-
-| 方法                    | 描述             |
-| ----------------------- | ---------------- |
-| `Result.Success(value)` | 创建一个成功结果 |
-| `Result.Failure(error)` | 创建一个失败结果 |
-
-### 判别方法
-
-| 方法       | 返回类型 | 描述           |
-| ---------- | -------- | -------------- |
-| `is_ok()`  | `bool`   | 是否为成功结果 |
-| `is_err()` | `bool`   | 是否为失败结果 |
-
-### 取值方法
-
-| 方法                   | 返回类型 | 描述                            |
-| ---------------------- | -------- | ------------------------------- |
-| `unwrap()`             | `T`      | 获取成功值，失败时抛出异常      |
-| `unwrap_err()`         | `E`      | 获取错误值，成功时抛出异常      |
-| `unwrap_or(default)`   | `T`      | 获取成功值或默认值              |
-| `unwrap_or_else(func)` | `T`      | 获取成功值或调用函数处理错误    |
-| `expect(msg)`          | `T`      | 类似 unwrap，但可自定义错误消息 |
-
-### 示例用法
-
-```python
-# 创建结果
-success = Result.Success(42)
-failure = Result.Failure("Error occurred")
-# 检查结果类型
-print(success.is_ok())   # True
-print(failure.is_err())  # True
-# 安全取值
-print(success.unwrap())          # 42
-print(failure.unwrap_or(0))      # 0
-print(failure.unwrap_or_else(lambda e: len(e)))  # 14
-# 带错误消息的取值
-try:
-    failure.expect("Operation failed")
-except ValueError as e:
-    print(e)  # Operation failed
-```
-
-## 实际应用示例
-
-### 文件操作
-
-```python
-def read_file(path: str) -> Result[str, str]:
-    try:
-        with open(path, 'r') as f:
-            return Result.Success(f.read())
-    except IOError as e:
-        return Result.Failure(str(e))
-result = read_file("data.txt")
-if result.is_ok():
-    print("File content:", result.unwrap())
-else:
-    print("Error:", result.unwrap_err())
-```
-
-### 数据验证
-
-```python
-def validate_age(age: int) -> Result[int, str]:
-    if age < 0:
-        return Result.Failure("Age cannot be negative")
-    if age > 120:
-        return Result.Failure("Age seems unrealistic")
-    return Result.Success(age)
-user_age = validate_age(25)
-match user_age:
-    case Result.Success(value):
-        print(f"Valid age: {value}")
-    case Result.Failure(error):
-        print(f"Invalid age: {error}")
-```
-
-### 链式操作
-
-```python
-def process_data(data: str) -> Result[int, str]:
-    # 模拟可能失败的操作链
-    cleaned = Result.Success(data.strip())
-    if not cleaned.unwrap():
-        return Result.Failure("Empty data")
-
-    try:
-        number = int(cleaned.unwrap())
-        return Result.Success(number * 2)
-    except ValueError:
-        return Result.Failure("Not a number")
-result = process_data("  42  ")
-print(result.unwrap_or(0))  # 84
-```
-
-## 设计理念
-
-pyrsult 的设计遵循以下原则：
-
-1. **显式错误处理**：强制开发者显式处理错误情况
-2. **类型安全**：通过泛型提供编译时类型检查
-3. **不可变性**：Result 对象一旦创建不可修改
-4. **最小化 API**：只提供核心方法，保持简洁
-5. **Pythonic 风格**：遵循 Python 的命名和设计惯例
-
-
-## 最佳实践
-
-1. **避免直接使用`unwrap()`**：除非你确定结果一定是成功的
-2. **优先使用`unwrap_or`和`unwrap_or_else`**：提供默认值或错误处理逻辑
-3. **使用`expect`提供有意义的错误信息**：在调试和关键操作中
-4. **保持错误类型简单**：通常使用字符串或简单对象作为错误类型
-5. **在 API 边界使用 Result**：特别是在模块和包的公共接口
-
-## 常见问题
-
-**Q: 是否支持链式操作？**
-A: 当前版本不直接支持 map/and_then，但可以通过组合实现：
-
-```python
-def map_result(result: Result[T, E], func) -> Result[Any, E]:
-    return Result.Success(func(result.unwrap())) if result.is_ok() else result
-```
-
-## 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
-## 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
-## 更新日志
-
-
-### v0.1.1 (2023-10-18)
-- 完整的 API 文档
-
-### v0.1.0 (2023-10-18)
-
-- 初始版本发布
-- 实现核心 Result 类型
-- 添加 Success 和 Failure 类
+# PyRsult 开发文档  
+版本：0.1.0  
+作者：fexcode  
+仓库：https://github.com/fexcode/pyrsult  
 
 ---
 
-## **pyrsult** - 让 Python 的错误处理更加优雅和可靠！
+## 1. 快速开始  
+```python
+pip install git+https://github.com/fexcode/pyrsult.git
+```
+
+```python
+from pyrsult import Result, Option
+
+# 1.1 Result：要么成功，要么失败
+def div(a: int, b: int) -> Result[float, str]:
+    if b == 0:
+        return Result.Failure("divide by zero")
+    return Result.Success(a / b)
+
+print(div(10, 2).unwrap())        # 5.0
+print(div(10, 0).unwrap_or(-1))   # -1
+
+# 1.2 Option：要么有值，要么空
+def find(lst, target):
+    for v in lst:
+        if v == target:
+            return Option.Some(v)
+    return Option.Nothing()
+
+find([1, 2, 3], 2).map(lambda x: x * 10).unwrap_or(0)  # 20
+```
+
+---
+
+## 2. Result 接口速查  
+所有方法均为 **链式/懒求值** 安全设计。
+
+| 接口 | 说明 | 代码示例 |
+|---|---|---|
+| `is_ok()` | 判别成功 | `div(4,2).is_ok()  # True` |
+| `is_err()` | 判别失败 | `div(4,0).is_err()  # True` |
+| `unwrap()` | 取成功值，失败则抛 | `div(4,2).unwrap()  # 2.0` |
+| `unwrap_or(default)` | 失败时给默认值 | `div(4,0).unwrap_or(-1)  # -1` |
+| `unwrap_or_else(f: E->T)` | 失败时懒求值 | `div(4,0).unwrap_or_else(lambda e: 999)  # 999` |
+| `expect(msg)` | 失败时自定义异常 | `div(4,0).expect("bad")  # ValueError: bad` |
+| `map(f: T->U)` | 成功链式转换 | `div(10,2).map(lambda x: x*2).unwrap()  # 10.0` |
+| `map_err(f: E->F)` | 失败链式转换 | `div(10,0).map_err(str.upper).unwrap_or(0)  # 0` |
+| `and_then(f: T->Result[U,E])` | 扁平链式（Rust flat_map） | `div(10,2).and_then(lambda x: div(x,2)).unwrap()  # 2.5` |
+| `or_else(f: E->Result[T,E])` | 失败时补救 | `div(10,0).or_else(lambda e: Result.Success(0)).unwrap()  # 0` |
+| `match` | 模式匹配（3.10+） | 见下方示例 |
+
+模式匹配示例：
+```python
+match div(10, 0):
+    case Success(v):
+        print("ok", v)
+    case Failure(e):
+        print("err", e)   # → err divide by zero
+```
+
+---
+
+## 3. Option 接口速查  
+
+| 接口 | 说明 | 代码示例 |
+|---|---|---|
+| `is_some()` / `is_nothing()` | 判别 | `Option.Some(7).is_some()  # True` |
+| `unwrap()` | 取值，空抛 | `Some(7).unwrap()  # 7` |
+| `unwrap_or(default)` | 空给默认值 | `Nothing().unwrap_or(99)  # 99` |
+| `unwrap_or_else(f:()->T)` | 懒求值 | `Nothing().unwrap_or_else(lambda: 99)  # 99` |
+| `map(f: T->U)` | 有值则映射 | `Some(7).map(str).unwrap()  # '7'` |
+| `and_then(f: T->Option[U])` | 扁平链 | `Some(5).and_then(lambda x: Some(x*2))  # Some(10)` |
+| `filter(pred)` | 条件过滤 | `Some(7).filter(lambda x: x>10)  # Nothing` |
+| `or_(optb)` / `or_else(f)` | 备选 | `Nothing() | Some(3)  # Some(3)` |
+| `ok_or(err)` | 转 Result | `Some(5).ok_or("empty")  # 5` |
+| `iter()` | 0/1 迭代器 | `list(Some(3).iter())  # [3]` |
+| `__bool__` | 真值测试 | `if Some(3): ...` |
+| `|` 运算符 | 或合并 | `Some(1) | Some(2)  # Some(1)` |
+
+构造快捷方式：
+```python
+Option.Auto(None)        # Nothing()
+Option.Auto(42)          # Some(42)
+```
+
+---
+
+## 4. 组合实战：读取配置  
+```python
+import os
+from pyrsult import Result, Option
+
+def env_int(key: str) -> Result[int, str]:
+    val = os.getenv(key)
+    return (
+        Option.Auto(val)
+        .map(int)
+        .ok_or(f"{key} not a valid int")
+    )
+
+port = env_int("PORT").unwrap_or(8080)   # 配置缺失自动兜底
+```
+
+---
+
+
+欢迎 PR & Issue！
