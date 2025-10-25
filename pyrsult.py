@@ -243,7 +243,11 @@ class Some(Option[T]):
         return f"Some({self._value!r})"
 
 
-class Nothing:
+class Nothing(Option[Any]):
+    def __init__(self) -> None:
+        # 固定给 Option 的 __init__ 传 None
+        super().__init__(None)
+
     def is_some(self) -> bool:
         return False
 
@@ -251,13 +255,14 @@ class Nothing:
         return True
 
     @property
-    def Sm(self):
+    def Sm(self) -> Some[Any]:
         raise ValueError("这个值是 Nothing")
 
     @property
     def iam_sure_this_value_is_not_nothing(self) -> Any:
         raise ValueError("这个值是 Nothing")
 
+    # 为了类型检查器不报错，给 NN 显式绑定
     NN = iam_sure_this_value_is_not_nothing
 
     def __repr__(self) -> str:
