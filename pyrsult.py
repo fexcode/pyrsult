@@ -136,8 +136,6 @@ class Option(ABC, Generic[T]):
     def is_some(self) -> bool: ...
     @abstractmethod
     def is_nothing(self) -> bool: ...
-    @abstractmethod
-    def match_(self, some: Callable[[T], U], nothing: Callable[[], U]) -> U: ...
     @property
     @abstractmethod
     def iam_sure_this_value_is_not_nothing(self) -> T: ...
@@ -244,13 +242,9 @@ class Some(Option[T]):
     def __repr__(self) -> str:
         return f"Some({self._value!r})"
 
-    def match_(self, some: Callable[[T], U], nothing: Callable[[], U]):
-        return some(self.NN)
 
-
-class Nothing(Option[Any]):
-    def __init__(self) -> None:
-        # 固定给 Option 的 __init__ 传 None
+class Nothing(Option[T]):
+    def __init__(self):
         super().__init__(None)
 
     def is_some(self) -> bool:
@@ -260,18 +254,14 @@ class Nothing(Option[Any]):
         return True
 
     @property
-    def Sm(self) -> Some[Any]:
+    def Sm(self):
         raise ValueError("这个值是 Nothing")
 
     @property
     def iam_sure_this_value_is_not_nothing(self) -> Any:
         raise ValueError("这个值是 Nothing")
 
-    # 为了类型检查器不报错，给 NN 显式绑定
     NN = iam_sure_this_value_is_not_nothing
-
-    def match_(self, some: Callable[[T], U], nothing: Callable[[], U]):
-        return nothing()
 
     def __repr__(self) -> str:
         return "Nothing"
@@ -304,3 +294,6 @@ if __name__ == "__main__":
 
     print(bar(5).Sm)  # -> Some(5)
     # print(bar(None).iter)
+
+    var: Option[int] = Nothing()
+    print(var.is_nothing)
