@@ -218,7 +218,7 @@ class Option(ABC, Generic[T]):
         return Nothing()
 
     @staticmethod
-    def Auto(value: Union[T, None]):
+    def From(value: Union[T, None]):
         return Some(value=value) if value is not None else Nothing()
 
 
