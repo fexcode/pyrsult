@@ -1,6 +1,6 @@
 [project]
 name = "pyrsult"
-version = "0.3.0"
+version = "0.4.0"
 description = "Python Rusty Result Library: 在Python中使用Rust风格的Result类型"
 authors = [
   { name="Fexcode", email="2734664632@qq.com" },

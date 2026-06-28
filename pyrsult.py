@@ -12,6 +12,8 @@ from typing import Generic, TypeVar, Union, Any, Callable, Iterator
 
 T = TypeVar("T")
 E = TypeVar("E")
+F = TypeVar("F")
+U = TypeVar("U")
 
 
 class Result(ABC, Generic[T, E]):
@@ -39,7 +41,19 @@ class Result(ABC, Generic[T, E]):
     @abstractmethod
     def expect(self, msg: str) -> T: ...
     @abstractmethod
-    def unwarp_or_else(self, func: Callable[[E], T]) -> T: ...
+    def unwrap_or_else(self, func: Callable[[E], T]) -> T: ...
+
+    @abstractmethod
+    def map(self, f: Callable[[T], U]) -> Result[U, E]: ...
+
+    @abstractmethod
+    def map_err(self, f: Callable[[E], F]) -> Result[T, F]: ...
+
+    @abstractmethod
+    def and_then(self, f: Callable[[T], Result[U, E]]) -> Result[U, E]: ...
+
+    @abstractmethod
+    def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]: ...
 
     # --------------- 工厂函数 ---------------
     @staticmethod
@@ -69,11 +83,23 @@ class Success(Result[T, Any]):
     def unwrap_or(self, default: T) -> T:
         return self._value
 
-    def unwarp_or_else(self, func: Callable[[E], T]) -> T:
+    def unwrap_or_else(self, func: Callable[[E], T]) -> T:
         return self._value
 
     def expect(self, msg: str) -> T:
         return self._value
+
+    def map(self, f: Callable[[T], U]) -> Result[U, E]:
+        return Success(f(self._value))
+
+    def map_err(self, f: Callable[[E], F]) -> Result[T, F]:
+        return Success(self._value)
+
+    def and_then(self, f: Callable[[T], Result[U, E]]) -> Result[U, E]:
+        return f(self._value)
+
+    def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]:
+        return Success(self._value)
 
     def __repr__(self) -> str:
         return f"Success({self._value!r})"
@@ -97,19 +123,26 @@ class Failure(Result[Any, E]):
     def unwrap_or(self, default: T) -> T:
         return default
 
-    def unwarp_or_else(self, func: Callable[[E], T]) -> T:
+    def unwrap_or_else(self, func: Callable[[E], T]) -> T:
         return func(self._value)
 
     def expect(self, msg: str) -> T:
         raise ValueError(msg)
 
+    def map(self, f: Callable[[T], U]) -> Result[U, E]:
+        return Failure(self._value)
+
+    def map_err(self, f: Callable[[E], F]) -> Result[T, F]:
+        return Failure(f(self._value))
+
+    def and_then(self, f: Callable[[T], Result[U, E]]) -> Result[U, E]:
+        return Failure(self._value)
+
+    def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]:
+        return f(self._value)
+
     def __repr__(self) -> str:
         return f"Failure({self._value!r})"
-
-
-# T = TypeVar("T")
-U = TypeVar("U")
-# E = TypeVar("E")
 
 
 class Option(ABC, Generic[T]):
