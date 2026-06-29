@@ -24,6 +24,10 @@ class Result(ABC, Generic[T, E]):
 
     def __init__(self, value: Any) -> None:
         self._value: Any = value
+        
+    @property
+    def error(self) -> E: 
+        return self._value
 
     # --------------- 判别函数 ---------------
     @abstractmethod
@@ -337,6 +341,7 @@ if __name__ == "__main__":
             print("Success|", value)
         case Failure(error):
             print("Failure|", error)
+            print(".error:"+Failure(error).error)
 
     # Option 类型
     def bar(x):
