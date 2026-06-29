@@ -30,6 +30,9 @@ class Result(ABC, Generic[T, E]):
     def is_ok(self) -> bool: ...
     @abstractmethod
     def is_err(self) -> bool: ...
+    
+    is_failure=is_err
+    
 
     # --------------- 取值函数 ---------------
     @abstractmethod
@@ -73,6 +76,7 @@ class Success(Result[T, Any]):
 
     def is_err(self) -> bool:
         return False
+
 
     def unwrap(self) -> T:
         return self._value
