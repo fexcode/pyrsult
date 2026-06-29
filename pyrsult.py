@@ -31,7 +31,8 @@ class Result(ABC, Generic[T, E]):
     @abstractmethod
     def is_err(self) -> bool: ...
     
-    is_failure=is_err
+    def is_failure(self) -> bool:
+        return self.is_err()
     
 
     # --------------- 取值函数 ---------------
@@ -76,6 +77,9 @@ class Success(Result[T, Any]):
 
     def is_err(self) -> bool:
         return False
+    
+    def is_failure(self) -> bool:
+        return self.is_err()
 
 
     def unwrap(self) -> T:
@@ -117,6 +121,9 @@ class Failure(Result[Any, E]):
 
     def is_err(self) -> bool:
         return True
+    
+    def is_failure(self) -> bool:
+        return self.is_err()
 
     def unwrap(self) -> T:
         raise ValueError(f"Unwrap failed | {self._value}")
